@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# vi: set ft=ruby :
+
+require "olery"
+
+$0 = "hotel_matcher"
+
+Olery.configure do |config|
+  config.add Olery::Resource.new("tripadvisor.com", "/Search", "get", "q")
+  config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" })
+  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query")
+end
+
+if ARGV.size < 1
+  puts "Wrong usage of program #{$0} see --help"
+  exit
+elsif ARGV.first == "--help"
+  puts "Hotel matcher will search for a given hotel name and print its url\n\n"
+  puts "Usage:\n\s #{$0} hotel-name\t e.g #{$0} \"DoubleTree Hilton Amsterdam\""
+  exit
+else
+  Olery::Inspector.new(ARGV.first).inspect
+end
