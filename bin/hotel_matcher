@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # vi: set ft=ruby :
 
-require "pry"
 require "olery"
 
 $0 = "hotel_matcher"
@@ -50,7 +49,6 @@ holiday_check_parser = Proc.new do |page, word|
   links = page.css("ul#quicksearch-results").select do |link|
     link["href"] =~ /.*#{word}.*/i
   end
-  binding.pry
   next if links.nil?
 
   if links.size > 0
