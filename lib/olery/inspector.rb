@@ -2,11 +2,10 @@ module Olery
 
   # <Inspector> will inspect the data we get back from the resource/s
   class Inspector
-    attr_reader :word, :results_queue
+    attr_reader :word
 
     def initialize(word)
       @word = word
-      @results_queue = Queue.new
     end
 
     # Inspect configuration resoruces
