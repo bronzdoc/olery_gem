@@ -1,16 +1,77 @@
 #!/usr/bin/env ruby
 # vi: set ft=ruby :
 
+require "pry"
 require "olery"
 
 $0 = "hotel_matcher"
+QUEUE = Queue.new
 
-Olery.configure do |config|
-  config.add Olery::Resource.new("tripadvisor.com", "/Search", "get", "q")
-  config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" })
-  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query")
+# Define trip advisor parser
+trip_advisor_parser = Proc.new do |page, word|
+  links = page.css("a.review-count").select do |link|
+    link["href"] =~ /.*#{word}.*/i
+  end
+  next if links.nil?
+
+  if links.size > 0
+    link = links.first
+    puts "Queuing link #{link[:href]}"
+    QUEUE << link[:href]
+  else
+    puts "No results for word #{word}"
+  end
+
+  puts "\n"
 end
 
+#TODO refactor parser commmon funcionality
+# Define booking.com parser
+booking_parser = Proc.new do |page, word|
+  # Search in an specific
+  links = page.css("a.destination_name").select do |link|
+    link.text =~ /.*#{word}.*/i
+  end
+  next if links.nil?
+
+  if links.size > 0
+    link = links.first
+    puts "Queuing link www.booking.com#{link[:href]}"
+    QUEUE << link[:href]
+  else
+    puts "No results for word #{word}"
+  end
+
+  puts "\n"
+end
+
+# Define holiday check parser
+holiday_check_parser = Proc.new do |page, word|
+  links = page.css("ul#quicksearch-results").select do |link|
+    link["href"] =~ /.*#{word}.*/i
+  end
+  binding.pry
+  next if links.nil?
+
+  if links.size > 0
+    link = links.first
+    puts "Queuing link #{link[:href]}"
+    QUEUE << link[:href]
+  else
+    puts "No results for word #{word}"
+  end
+
+  puts "\n"
+end
+
+# Configuration of scraping resources
+Olery.configure do |config|
+  config.add Olery::Resource.new("tripadvisor.com", "/Search", "get",  "q", {}, trip_advisor_parser)
+  config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" }, booking_parser)
+  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query", holiday_check_parser)
+end
+
+# Simple cli...
 if ARGV.size < 1
   puts "Wrong usage of program #{$0} see --help"
   exit
