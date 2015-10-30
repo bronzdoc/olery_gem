@@ -19,14 +19,21 @@ Or install it yourself as:
 
 ## Usage
 
+# Creating a parser
+```ruby
+hotel_parser1 = Proc.new do |page, word|
+  your parser logic...
+end
+```
+
 # Configure scraping resources
 ```ruby
+#Resource.new(host, endpoint, method, text_box_query_param, extra_query_args, parser)
 Olery.configure do |config|
-  config.add Olery::Resource.new("tripadvisor.com", "/Search", "get",  "q", {}, trip_advisor_parser)
-  config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" }, booking_parser)
-  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query", holiday_check_parser)
+  config.add Olery::Resource.new("hotels1.com", "/Search", "get",  "q", {}, hotel_parser1)
+  config.add Olery::Resource.new("hotels2.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" }, hotel_parser2)
+  config.add Olery::Resource.new("hotels3.de", "/schnellsuche.php", "post", "query", hotel_parser3)
 end
-
 ```
 ## TODO
  * Fix parsers...
