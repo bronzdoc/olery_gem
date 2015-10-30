@@ -1,8 +1,5 @@
 # Olery
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/olery`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Little gem to extract url from hotels
 
 ## Installation
 
@@ -22,7 +19,17 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+# Configure scraping resources
+```ruby
+Olery.configure do |config|
+  config.add Olery::Resource.new("tripadvisor.com", "/Search", "get",  "q", {}, trip_advisor_parser)
+  config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" }, booking_parser)
+  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query", holiday_check_parser)
+end
+
+```
+## TODO
+ * Fix parsers...
 
 ## Development
 
