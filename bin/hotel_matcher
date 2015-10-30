@@ -2,32 +2,49 @@
 # vi: set ft=ruby :
 
 require "olery"
+require "pry"
 
 $0 = "hotel_matcher"
 QUEUE = Queue.new
 
 # Define trip advisor parser
 trip_advisor_parser = Proc.new do |page, word|
-  links = page.css("a.review-count").select do |link|
-    link["href"] =~ /.*#{word}.*/i
-  end
-  next if links.nil?
+  divs = []
+  # Get all the divs with the info we required
+  page.css("div.poi-info").each { |div| divs << div }
 
-  if links.size > 0
-    link = links.first
-    puts "Queuing link #{link[:href]}"
-    QUEUE << link[:href]
-  else
-    puts "No results for word #{word}"
+  # Keep track of reviews, just to get the max value
+  reviews = []
+
+  # Get hotel data from divs
+  hotels = []
+  divs.each do |div|
+    hotel_name = div.css("div.title span").text
+    hotel_reviews = div.css("div.reviews").text.gsub(/[^\d]/, '').to_i
+    # Insert data only if the hotel name includes the word we are looking
+    if hotel_name.downcase.include?(word.downcase)
+      hotels << {
+        name: hotel_name,
+        reviews: hotel_reviews,
+        url:  div.css("a.review-count").attr("href")
+      }
+
+      reviews << hotel_reviews
+    end
   end
 
+  # The choosen hotel will be the one with the most reviews
+  max_hotel = nil
+  hotels.each { |hotel| max_hotel = hotel if hotel[:reviews] == reviews.max }
+
+  puts "Queuing link #{max_hotel[:url]}"
+  QUEUE << max_hotel
   puts "\n"
 end
 
-#TODO refactor parser commmon funcionality
+#TODO refactor parser commmon functionality
 # Define booking.com parser
 booking_parser = Proc.new do |page, word|
-  # Search in an specific
   links = page.css("a.destination_name").select do |link|
     link.text =~ /.*#{word}.*/i
   end
@@ -40,7 +57,6 @@ booking_parser = Proc.new do |page, word|
   else
     puts "No results for word #{word}"
   end
-
   puts "\n"
 end
 
@@ -58,7 +74,6 @@ holiday_check_parser = Proc.new do |page, word|
   else
     puts "No results for word #{word}"
   end
-
   puts "\n"
 end
 
