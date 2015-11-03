@@ -36,7 +36,6 @@ Olery.configure do |config|
 end
 ```
 ## TODO
- * Fix parsers...
  * Integration tests
 
 ## Development
