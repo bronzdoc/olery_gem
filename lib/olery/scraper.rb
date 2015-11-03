@@ -1,24 +1,18 @@
 module Olery
-
-  # <Inspector> will inspect the data we get back from the resource/s
-  class Inspector
+  # <Scraper> Will start scraping for data with the configured resources
+  class Scraper
     attr_reader :word
 
     def initialize(word)
       @word = word
     end
 
-    # Inspect configuration resoruces
-    def inspect
+    # Run the scraper
+    def run
       Olery.configuration.resources.each do |resource|
         puts "Looking for hotels in #{resource.host} that match the word \"#{@word}\""
-        run resource
+        resource.scrape @word
       end
-    end
-
-    private
-    def run(resource)
-      resource.scrape @word
     end
   end
 end

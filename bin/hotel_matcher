@@ -128,5 +128,5 @@ elsif ARGV.first == "--help"
   puts "Usage:\n\s #{$0} hotel-name\t e.g #{$0} \"DoubleTree Hilton Amsterdam\""
   exit
 else
-  Olery::Inspector.new(ARGV.first).inspect
+  Olery::Scraper.new(ARGV.first).run
 end
