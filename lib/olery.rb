@@ -1,5 +1,8 @@
+require "pry"
+require "colorize"
+require "digest/md5"
 require "olery/version"
-require_relative "olery/configuration"
-require_relative "olery/resource"
-require_relative "olery/inspector"
-
+require "olery/helper"
+require "olery/configuration"
+require "olery/resource"
+require "olery/inspector"
