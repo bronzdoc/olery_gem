@@ -2,86 +2,121 @@
 # vi: set ft=ruby :
 
 require "olery"
-require "pry"
 
 $0 = "hotel_matcher"
 QUEUE = Queue.new
 
-# Define trip advisor parser
+# TODO refactor parser commmon functionality
+
+# Define tripadvisor.com parser
 trip_advisor_parser = Proc.new do |page, word|
   divs = []
   # Get all the divs with the info we required
   page.css("div.poi-info").each { |div| divs << div }
 
-  # Keep track of reviews, just to get the max value
-  reviews = []
+  hotels = {}
+  hotel_names = []
+  md5_digest = Digest::MD5.new
 
   # Get hotel data from divs
-  hotels = []
   divs.each do |div|
-    hotel_name = div.css("div.title span").text
-    hotel_reviews = div.css("div.reviews").text.gsub(/[^\d]/, '').to_i
-    # Insert data only if the hotel name includes the word we are looking
-    if hotel_name.downcase.include?(word.downcase)
-      hotels << {
+    hotel_name = Olery::Helpers::String.trim(div.css("div.title span").text.downcase)
+    hotel_names << hotel_name
+    hotels[md5_digest.hexdigest(hotel_name)] = {
         name: hotel_name,
-        reviews: hotel_reviews,
         url:  div.css("a.review-count").attr("href")
       }
-
-      reviews << hotel_reviews
-    end
   end
 
-  # The choosen hotel will be the one with the most reviews
-  max_hotel = nil
-  hotels.each { |hotel| max_hotel = hotel if hotel[:reviews] == reviews.max }
-
-  puts "Queuing link #{max_hotel[:url]}"
-  QUEUE << max_hotel
-  puts "\n"
+  best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
+  unless best_match.nil?
+    best_match_key = md5_digest.hexdigest(best_match)
+    puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "www.tripadvisor.com#{hotels[best_match_key][:url]}".blue
+    QUEUE << hotels[best_match_key][:url]
+  else
+    puts "No results for word #{word}".red
+  end
+  puts ""
 end
 
-#TODO refactor parser commmon functionality
 # Define booking.com parser
 booking_parser = Proc.new do |page, word|
-  links = page.css("a.destination_name").select do |link|
-    link.text =~ /.*#{word}.*/i
-  end
-  next if links.nil?
+  divs = []
+  # Get all the divs with the info we required
+  page.css("div#hotelWrapper div.disam-single-result").each { |div| divs << div }
 
-  if links.size > 0
-    link = links.first
-    puts "Queuing link www.booking.com#{link[:href]}"
-    QUEUE << link[:href]
-  else
-    puts "No results for word #{word}"
+  hotels = {}
+  hotel_names = []
+  md5_digest = Digest::MD5.new
+
+  # Get hotel data from divs
+  divs.each do |div|
+    hotel_name = Olery::Helpers::String.trim(div.css("a.destination_name").text.downcase)
+    hotel_names << hotel_name
+    hotels[md5_digest.hexdigest(hotel_name)] = {
+      name: hotel_name,
+      url: div.css("a.destination_name").attr("href")
+    }
   end
-  puts "\n"
+
+  best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
+  unless best_match.nil?
+    best_match_key = md5_digest.hexdigest(best_match)
+    puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "http://www.booking.com#{hotels[best_match_key][:url]}".blue
+    QUEUE << hotels[best_match_key][:url]
+  else
+    puts "No results for word #{word}".red
+  end
+  puts ""
 end
 
-# Define holiday check parser
+# Define holidaycheck.de parser
 holiday_check_parser = Proc.new do |page, word|
-  links = page.css("ul#quicksearch-results").select do |link|
-    link["href"] =~ /.*#{word}.*/i
-  end
-  next if links.nil?
+  # Get all the links with the info we required
+  hotel_results = page.css("div#quicksearch-page ul.quicksearch-categories ul.quicksearch-results")
 
-  if links.size > 0
-    link = links.first
-    puts "Queuing link #{link[:href]}"
-    QUEUE << link[:href]
-  else
-    puts "No results for word #{word}"
+  # If hotels_results[2] don't contains the hotel results data, that means
+  # it didn't found hotels with the user input, so we exit earlier...
+  if hotel_results[2].nil?
+    puts "No results for word #{word}".red
+    puts ""
+    next
   end
-  puts "\n"
+
+  hotel_links = hotel_results[2].css("li a")
+  hotels = {}
+  hotel_names = []
+  md5_digest = Digest::MD5.new
+
+  # Get hotel data from links
+  hotel_links.each do |link|
+    hotel_name = link.text.downcase
+    hotel_names << hotel_name
+    hotels[md5_digest.hexdigest(hotel_name)] = {
+      name: hotel_name,
+      url: link.attr("href")
+    }
+  end
+
+  best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
+  unless best_match.nil?
+    best_match_key = md5_digest.hexdigest(best_match)
+    puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "http://www.holidaycheck.de#{hotels[best_match_key][:url]}".blue
+    QUEUE << hotels[best_match_key][:url]
+  else
+    puts "No results for word #{word}".red
+  end
+  puts ""
 end
 
 # Configuration of scraping resources
 Olery.configure do |config|
   config.add Olery::Resource.new("tripadvisor.com", "/Search", "get",  "q", {}, trip_advisor_parser)
   config.add Olery::Resource.new("booking.com", "/searchresults.en-gb.html", "get", "ss", { si: "ai,co,ci,re,di" }, booking_parser)
-  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "post", "query", holiday_check_parser)
+  config.add Olery::Resource.new("holidaycheck.de", "/schnellsuche.php", "get", "query", holiday_check_parser)
 end
 
 # Simple cli...
