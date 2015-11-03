@@ -15,5 +15,12 @@ RSpec.describe "hotel_matcher", type: :aruba do
         expect(all_stdout).to be == "Hotel matcher will search for a given hotel name and print its url\nUsage: hotel_matcher hotel-name e.g hotel_matcher \"DoubleTree Hilton Amsterdam\"\n"
       end
     end
+
+    context "when no hotel is found" do
+      it "should display a 'no result mesage'" do
+        run "hotel_matcher kakaroto"
+        expect(all_stdout).to include "No results for word kakaroto"
+      end
+    end
   end
 end
