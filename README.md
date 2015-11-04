@@ -2,9 +2,8 @@
 Little gem to extract url from hotels
 
 # Demo
-<a href="http://asciinema.org/a/2cu15gcxad4cd94v2uj4470pa" target="_blank" title="Demo">
-  ![Demo](http://asciinema.org/a/2cu15gcxad4cd94v2uj4470pa)
-</a>
+[![asciicast](https://asciinema.org/a/2cu15gcxad4cd94v2uj4470pa.png)](https://asciinema.org/a/2cu15gcxad4cd94v2uj4470pa)
+
 
 ## Installation
 
