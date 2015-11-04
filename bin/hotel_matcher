@@ -33,7 +33,7 @@ trip_advisor_parser = Proc.new do |page, word|
   best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
   unless best_match.nil?
     best_match_key = md5_digest.hexdigest(best_match)
-    puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "Queueing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
     puts "www.tripadvisor.com#{hotels[best_match_key][:url]}".blue
     QUEUE << hotels[best_match_key][:url]
   else
@@ -65,7 +65,7 @@ booking_parser = Proc.new do |page, word|
   best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
   unless best_match.nil?
     best_match_key = md5_digest.hexdigest(best_match)
-    puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "Queueing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
     puts "http://www.booking.com#{hotels[best_match_key][:url]}".blue
     QUEUE << hotels[best_match_key][:url]
   else
@@ -105,7 +105,7 @@ holiday_check_parser = Proc.new do |page, word|
   best_match = Olery::Helpers::Matcher.best_match(hotel_names, word)
   unless best_match.nil?
     best_match_key = md5_digest.hexdigest(best_match)
-    $stdout.puts "Queuing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
+    puts "Queueing url for hotel => ".yellow + "#{hotels[best_match_key][:name]}".green
     puts "http://www.holidaycheck.de#{hotels[best_match_key][:url]}".blue
     QUEUE << hotels[best_match_key][:url]
   else
